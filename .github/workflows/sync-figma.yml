@@ -17,7 +17,7 @@ jobs:
     - name: Fetch Figma Variables
       run: |
         curl -H "X-FIGMA-TOKEN: ${{ secrets.FIGMA_API_TOKEN_TEMPORAL }}" \
-        "https://api.figma.com/v1/files/bjiwtE7elj5lcHfAP1S78q" \
+        "https://api.figma.com/v1/files/file_id>" \
         -o figma-design-tokens.json
 
     # 3. Configurar git para hacer commit y push de los cambios
