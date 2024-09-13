@@ -1,45 +1,42 @@
-name: Proof Figma Tokens
+name: Figma Migration Workflow
 
-# Evento que permite ejecutar el workflow manualmente
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
+    inputs:
+      figma_document_id:
+        description: 'ID del documento de Figma'
+        required: true
+        default: ''
 
 jobs:
-  update-figma:
+  figma-migration:
     runs-on: ubuntu-latest
 
     steps:
-    # 1. Checkout del repositorio
-    - name: Checkout repository
+    - name: Checkout the code
       uses: actions/checkout@v3
 
-    # 2. Llamar a la API de Figma para obtener las variables o tokens
-    - name: Fetch Figma Variables with Debug and Status Check
-      run: |
-        status_code=$(curl -w "%{http_code}" -H "X-FIGMA-TOKEN: ${{ secrets.FIGMA_API_TOKEN_TEMPORAL }}" \
-        "https://api.figma.com/v1/files/bjiwtE7elj5lcHfAP1S78q" -o figma-design-tokens.json)
-        
-        echo "Status code: $status_code"
-        
-        # Verificar si la respuesta es correcta
-        if [ $status_code -ne 200 ]; then
-          echo "Error: Failed to fetch Figma variables"
-          exit 1
-        fi
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '16'
 
-        # Mostrar el contenido del archivo descargado
-        echo "Figma variables downloaded:"
-        cat figma-design-tokens.json
+    - name: Install dependencies
+      run: npm install
 
-    # 3. Configurar git para hacer commit y push de los cambios
-    - name: Commit and Push Changes
+    - name: Migrate Figma components
+      env:
+        FIGMA_TOKEN: ${{ secrets.FIGMA_TOKEN }}
+        FIGMA_DOCUMENT_ID: ${{ github.event.inputs.figma_document_id }}
       run: |
-        git config --global user.email "actions@github.com"
-        git config --global user.name "GitHub Actions"
-        
-        # Comprobar si hubo cambios en el archivo
-        git diff --exit-code figma-design-tokens.json || (
-          git add figma-design-tokens.json
-          git commit -m "Updated Figma design tokens"
-          git push
-        )
+        curl -X GET "https://api.figma.com/v1/files/${FIGMA_DOCUMENT_ID}" \
+        -H "X-Figma-Token: ${FIGMA_TOKEN}" \
+        -o figma_components.json
+
+    - name: Process Figma JSON
+      run: |
+        echo "Processing Figma JSON"
+        # Aquí agregas cualquier script que procese el archivo figma_components.json
