@@ -33,7 +33,7 @@ jobs:
         FIGMA_DOCUMENT_ID: ${{ github.event.inputs.figma_document_id }}
       run: |
         curl -X GET "https://api.figma.com/v1/files/${FIGMA_DOCUMENT_ID}" \
-        -H "X-Figma-Token: ${FIGMA_TOKEN}" \
+        -H "X-Figma-Token: ${FIGMA_API_TOKEN_TEMPORAL}" \
         -o figma_components.json
 
     - name: Process Figma JSON
