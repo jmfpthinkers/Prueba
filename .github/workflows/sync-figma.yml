@@ -14,17 +14,32 @@ jobs:
       uses: actions/checkout@v3
 
     # 2. Llamar a la API de Figma para obtener las variables o tokens
-    - name: Fetch Figma Variables
+    - name: Fetch Figma Variables with Debug and Status Check
       run: |
-        curl -H "X-FIGMA-TOKEN: ${{ secrets.FIGMA_API_TOKEN_TEMPORAL }}" \
-        "https://api.figma.com/v1/files/bjiwtE7elj5lcHfAP1S78q" \
-        -o figma-design-tokens.json
+        status_code=$(curl -w "%{http_code}" -H "X-FIGMA-TOKEN: ${{ secrets.FIGMA_API_TOKEN_TEMPORAL }}" \
+        "https://api.figma.com/v1/files/bjiwtE7elj5lcHfAP1S78q" -o figma-design-tokens.json)
+        
+        echo "Status code: $status_code"
+        
+        # Verificar si la respuesta es correcta
+        if [ $status_code -ne 200 ]; then
+          echo "Error: Failed to fetch Figma variables"
+          exit 1
+        fi
+
+        # Mostrar el contenido del archivo descargado
+        echo "Figma variables downloaded:"
+        cat figma-design-tokens.json
 
     # 3. Configurar git para hacer commit y push de los cambios
     - name: Commit and Push Changes
       run: |
         git config --global user.email "actions@github.com"
         git config --global user.name "GitHub Actions"
-        git add figma-design-tokens.json
-        git commit -m "Updated Figma design tokens"
-        git push
+        
+        # Comprobar si hubo cambios en el archivo
+        git diff --exit-code figma-design-tokens.json || (
+          git add figma-design-tokens.json
+          git commit -m "Updated Figma design tokens"
+          git push
+        )
