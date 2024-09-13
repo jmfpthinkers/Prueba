@@ -29,7 +29,7 @@ jobs:
 
     - name: Migrate Figma components
       env:
-        FIGMA_TOKEN: ${{ secrets.FIGMA_TOKEN }}
+        FIGMA_TOKEN: ${{ secrets.FIGMA_API_TOKEN_TEMPORAL }}
         FIGMA_DOCUMENT_ID: ${{ github.event.inputs.figma_document_id }}
       run: |
         curl -X GET "https://api.figma.com/v1/files/${FIGMA_DOCUMENT_ID}" \
